@@ -1,0 +1,71 @@
+---
+version: "3"
+
+vars:
+  VERSION:
+    sh: git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
+  COMMIT_SHA:
+    sh: git rev-parse --short HEAD
+  LDFLAGS:
+    - -X github.com/jace-ys/pikcel/internal/versioninfo.Version={{ .VERSION }}
+    - -X github.com/jace-ys/pikcel/internal/versioninfo.CommitSHA={{ .COMMIT_SHA }}
+
+tasks:
+  default:
+    deps: [gen]
+    cmds:
+      - go run ./cmd/pikcel/... {{ .CLI_ARGS }}
+
+  server:
+    deps: [gen]
+    cmds:
+      - go run ./cmd/pikcel/... server {{ .CLI_ARGS }}
+    env:
+      DEBUG: true
+      OTEL_GO_X_EXEMPLAR: true
+
+  client:
+    deps: [gen]
+    cmds:
+      - go run ./cmd/pikcel-cli/... {{ .CLI_ARGS }}
+
+  test:
+    deps: [gen]
+    cmds:
+      - go test -race {{ .CLI_ARGS }} ./...
+
+  lint:
+    deps: [gen]
+    cmds:
+      - golangci-lint run --path-prefix=./ {{ .CLI_ARGS }} ./...
+
+  build:
+    deps: [gen]
+    cmds:
+      - task: build:server
+      - task: build:client
+
+  build:server:
+    internal: true
+    cmds:
+      - go build -ldflags='{{ .LDFLAGS | join " " }}' -o ./dist/ ./cmd/pikcel/...
+
+  build:client:
+    internal: true
+    cmds:
+      - go build -ldflags='{{ .LDFLAGS | join " " }}' -o ./dist/ ./cmd/pikcel-cli/...
+
+  gen:
+    cmds:
+      - task: gen:api:v1
+
+  gen:api:*:
+    internal: true
+    vars:
+      API_VERSION: "{{ index .MATCH 0 }}"
+    cmds:
+      - goa gen github.com/jace-ys/pikcel/api/{{ .API_VERSION }} -o api/{{ .API_VERSION }}
+    sources:
+      - api/{{ .API_VERSION }}/*.go
+    generates:
+      - api/{{ .API_VERSION }}/gen/**/*

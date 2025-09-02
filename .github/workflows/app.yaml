@@ -1,0 +1,92 @@
+---
+name: app
+
+on: [push]
+
+defaults:
+  run:
+    working-directory: ./app
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
+        with:
+          version: 2025.8.21
+          install: true
+          experimental: true
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.0"
+          cache-dependency-path: app/go.sum
+      - run: go mod tidy
+      - run: task app:gen
+      - name: Save task cache
+        uses: actions/cache/save@v4
+        with:
+          path: .task
+          key: task-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.task/checksum/*') }}
+      - name: Check git status
+        run: if [[ -n $(git status --porcelain) ]]; then git status --porcelain && exit 1; fi
+
+  lint:
+    needs: [prepare]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Restore task cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .task
+          key: task-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.task/checksum/*') }}
+      - uses: jdx/mise-action@v3
+        with:
+          version: 2025.8.21
+          install: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.0"
+          cache-dependency-path: app/go.sum
+      - run: task app:lint
+
+  test:
+    needs: [prepare]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Restore task cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .task
+          key: task-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.task/checksum/*') }}
+      - uses: jdx/mise-action@v3
+        with:
+          version: 2025.8.21
+          install: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.0"
+          cache-dependency-path: app/go.sum
+      - run: task app:test
+
+  build:
+    needs: [prepare]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Restore task cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .task
+          key: task-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.task/checksum/*') }}
+      - uses: jdx/mise-action@v3
+        with:
+          version: 2025.8.21
+          install: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.0"
+          cache-dependency-path: app/go.sum
+      - run: task app:build

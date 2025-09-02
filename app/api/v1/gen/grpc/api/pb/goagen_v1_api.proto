@@ -1,0 +1,27 @@
+// Code generated with goa v3.22.1, DO NOT EDIT.
+//
+// api protocol buffer definition
+//
+// Command:
+// $ goa gen github.com/jace-ys/pikcel/api/v1 -o api/v1
+
+syntax = "proto3";
+
+package api;
+
+option go_package = "/apipb";
+
+// Service is the api service interface.
+service API {
+	// CanvasGet implements CanvasGet.
+	rpc CanvasGet (CanvasGetRequest) returns (CanvasGetResponse);
+}
+
+message CanvasGetRequest {
+}
+
+message CanvasGetResponse {
+	string id = 1;
+	sint32 width = 2;
+	sint32 height = 3;
+}

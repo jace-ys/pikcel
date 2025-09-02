@@ -1,0 +1,114 @@
+---
+version: "2"
+
+linters:
+  default: all
+  disable:
+    - contextcheck
+    - depguard
+    - err113
+    - exhaustruct
+    - gochecknoglobals
+    - ireturn
+    - misspell
+    - mnd
+    - nlreturn
+    - noinlineerr
+    - tagalign
+    - unparam
+    - varnamelen
+    - wsl
+    - wsl_v5
+
+  settings:
+    cyclop:
+      package-average: 5.0
+
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+    exhaustive:
+      check:
+        - switch
+        - map
+
+    funcorder:
+      struct-method: false
+
+    gocognit:
+      min-complexity: 20
+
+    gocritic:
+      disabled-checks:
+        - singleCaseSwitch
+
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+
+    nakedret:
+      max-func-lines: 0
+
+    revive:
+      rules:
+        - name: dot-imports
+          arguments:
+            - allowed-packages:
+                - goa.design/goa/v3/dsl
+
+    staticcheck:
+      dot-import-whitelist:
+        - goa.design/goa/v3/dsl
+
+    wrapcheck:
+      report-internal-errors: true
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
+        - (context.Context).Err()
+
+  exclusions:
+    warn-unused: true
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
+      - legacy
+    paths:
+      - cmd/pikcel-cli
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - swaggo
+
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule
+
+    golines:
+      max-len: 120
+      shorten-comments: true
+      reformat-tags: false
+
+  exclusions:
+    warn-unused: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
